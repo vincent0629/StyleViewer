@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const styleTree = require('./styleTree');
 
 if (process.argv.length < 3) {
@@ -9,6 +10,7 @@ if (process.argv.length < 3) {
 const nodes = styleTree.create(process.argv.slice(2))
 
 const app = express();
+app.use(cors());
 
 app.get('/get/:name', (req, res) => {
   res.json(styleTree.get(nodes, req.params.name));

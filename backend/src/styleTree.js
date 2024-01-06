@@ -65,7 +65,7 @@ const parseFile = (nodes, path) => {
   const fd = fs.openSync(path, 'r');
   const buffer = new Int8Array(4096);
   const decoder = new TextDecoder('UTF-8');
-  while (true) {
+  while (state != State.ERROR) {
     const bytes = fs.readSync(fd, buffer);
     parser.write(decoder.decode(buffer.subarray(0, bytes)));
     if (bytes < buffer.length)
@@ -78,7 +78,7 @@ const parseFile = (nodes, path) => {
 const scanDir = (nodes, dir) => {
   fs.readdirSync(dir, {withFileTypes: true}).forEach(file => {
     const path = `${dir}/${file.name}`;
-    if (file.isDirectory())
+    if (file.isDirectory() && file.name.indexOf('-') < 0)
       scanDir(nodes, path);
     else if (file.name.endsWith('.xml'))
       parseFile(nodes, path);
@@ -98,7 +98,7 @@ const get = (nodes, name) => {
 };
 
 const find = (nodes, name) => {
-  return nodes.filter(node => node.name.indexOf(name) >= 0);
+  return nodes.filter(node => node.name.indexOf(name) >= 0).map(node => node.name);
 };
 
 module.exports = {
