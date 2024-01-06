@@ -56,6 +56,16 @@ function App() {
   const onNodeNameClick = (e) => {
     fetchNodeFamily(e.target.getAttribute('data-tag'))
       .then(nodes => {
+        const keys = {};
+        nodes.forEach(node => {
+          if (node.attributes)
+            Object.keys(node.attributes).forEach(key => {
+              if (key in keys)
+                node.attributes[key] = '--' + node.attributes[key];
+              else
+                keys[key] = 1;
+            });
+        });
         setNodes(nodes);
       });
   };
@@ -69,10 +79,16 @@ function App() {
   };
 
   const renderAttribute = (attr) => {
+    let value = attr[1];
+    let overwrite = undefined;
+    if (value.startsWith('--')) {
+      overwrite = 'line-through';
+      value = value.substring(2);
+    }
     return (
       <div key={attr[0]} className="flex px-2">
         <div className="w-80 overflow-x-hidden">{attr[0]}</div>
-        <div className="grow ml-2">{attr[1]}</div>
+        <div className={`grow ml-2 ${overwrite}`}>{value}</div>
       </div>
     );
   };
