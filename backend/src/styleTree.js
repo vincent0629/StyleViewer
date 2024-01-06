@@ -32,6 +32,8 @@ const parseFile = (nodes, path) => {
         break;
       case State.STYLE:
         if (tag.name === 'item') {
+          if (node.attributes === undefined)
+            node.attributes = {};
           attr = tag.attributes.name;
           state = State.ITEM;
         }
@@ -59,7 +61,7 @@ const parseFile = (nodes, path) => {
   };
   parser.ontext = (text) => {
     if (state === State.ITEM)
-      node[attr] = text;
+      node.attributes[attr] = text;
   };
 
   const fd = fs.openSync(path, 'r');
@@ -94,7 +96,8 @@ const create = (dirs) => {
 };
 
 const get = (nodes, name) => {
-  return nodes.filter(node => node.name === name);
+  const array = nodes.filter(node => node.name === name);
+  return array.length > 0 ? array[0] : null;
 };
 
 const find = (nodes, name) => {
