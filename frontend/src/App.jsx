@@ -70,9 +70,9 @@ function App() {
 
   const renderAttribute = (attr) => {
     return (
-      <div key={attr[0]}>
-        <span>{attr[0]}</span>
-        <span>{attr[1]}</span>
+      <div key={attr[0]} className="flex px-2">
+        <div className="w-80 overflow-x-hidden">{attr[0]}</div>
+        <div className="grow ml-2">{attr[1]}</div>
       </div>
     );
   };
@@ -80,7 +80,7 @@ function App() {
   const renderNode = (node) => {
     return (
       <div key={`node-${node.name}`}>
-        <div>{node.name}</div>
+        <div className="p-2 text-gray-200 bg-gray-800">{node.name}</div>
         <div>
           {node.attributes && Object.entries(node.attributes).map(attr => renderAttribute(attr))}
         </div>
@@ -89,14 +89,16 @@ function App() {
   };
 
   return (
-    <div className="flex">
-      <div>
+    <div className="flex flex-row h-full">
+      <div className="max-w-[30%] flex flex-col">
         <div className="p-2">
-          <input className="w-full" type="text" placeholder="Type style name" onChange={onInputChange} />
+          <input className="w-full border" type="text" placeholder="Type style name" onChange={onInputChange} />
         </div>
-        {nodeNames && nodeNames.map(name => renderNodeName(name))}
+        <div className="grow p-2 overflow-x-hidden overflow-y-auto">
+          {nodeNames && nodeNames.map(name => renderNodeName(name))}
+        </div>
       </div>
-      <div>
+      <div className="grow overflow-auto">
         {nodes && nodes.map(node => renderNode(node))}
       </div>
     </div>
