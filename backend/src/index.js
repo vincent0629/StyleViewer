@@ -12,12 +12,24 @@ const nodes = styleTree.create(process.argv.slice(2))
 const app = express();
 app.use(cors());
 
-app.get('/get/:name', (req, res) => {
-  res.json(styleTree.get(nodes, req.params.name));
+app.get('/find/style/:name', (req, res) => {
+  res.json(styleTree.findStyle(nodes, req.params.name));
 });
 
-app.get('/find/:name', (req, res) => {
-  res.json(styleTree.find(nodes, req.params.name));
+app.get('/get/style/:name', (req, res) => {
+  res.json(styleTree.getStyle(nodes, req.params.name));
+});
+
+app.get('/get/color/:name', (req, res) => {
+  res.json(styleTree.getColor(nodes, req.params.name));
+});
+
+app.get('/get/dimen/:name', (req, res) => {
+  res.json(styleTree.getDimen(nodes, req.params.name));
+});
+
+app.get('/get/integer/:name', (req, res) => {
+  res.json(styleTree.getInteger(nodes, req.params.name));
 });
 
 app.listen(3000, () => {
