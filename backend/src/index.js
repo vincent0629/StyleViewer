@@ -12,6 +12,20 @@ const nodes = styleTree.create(process.argv.slice(2))
 const app = express();
 app.use(cors());
 
+const getFinalValue = (value) => {
+  if (value instanceof Array) {
+    return value.map(v => getFinalValue(v));
+  }
+
+  while (value.startsWith('@')) {
+    const [type, name] = value.substring(1).split('/');
+    const v = styleTree.getResource(nodes, type, name);
+    if (v)
+      value = v;
+  }
+  return value;
+};
+
 app.get('/find/style/:name', (req, res) => {
   res.json(styleTree.findStyle(nodes, req.params.name));
 });
@@ -25,9 +39,9 @@ app.get('/getall/style/:name', (req, res) => {
   let name = req.params.name;
   while (name) {
     const style = styleTree.getStyle(nodes, name);
+    name = null;
     if (style !== null) {
       result.push(style);
-      name = null;
       if (style.parent)
         name = style.parent;
       else {
@@ -50,11 +64,16 @@ app.get('/getall/:type/:name', (req, res) => {
   let name = req.params.name;
   while (name) {
     const res = styleTree.getResource(nodes, type, name);
+    name = null;
     if (res !== null) {
       result.push(res);
-      name = null;
-      if (res.startsWith('@'))
-        [type, name] = res.substring(1).split('/');
+      if (res instanceof Array) {
+        if (res.map(v => v.startsWith('@')).length > 0)
+          result.push(getFinalValue(res));
+      } else {
+        if (res.startsWith('@'))
+          [type, name] = res.substring(1).split('/');
+      }
     }
   }
   res.json(result);

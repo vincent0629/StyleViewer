@@ -8,12 +8,14 @@ const State = {
   FINISH: st++,
   RESOURCES: st++,
   STYLE: st++,
-  ITEM: st++,
+  STYYLE_ITEM: st++,
+  ARRAY: st++,
+  ARRAY_ITEM: st++,
   SIMPLE: st++,
 };
 
-const Types = [
-  'color', 'dimen', 'integer', 'string',
+const SimpleTypes = [
+  'color', 'dimen', 'integer', 'string', 'bool', 'fraction',
 ];
 
 const parseFile = (nodes, path) => {
@@ -34,7 +36,11 @@ const parseFile = (nodes, path) => {
           node = tag.attributes;
           nodes.style.push(node);
           state = State.STYLE;
-        } else if (Types.indexOf(tag.name) >= 0) {
+        } else if (tag.name === 'array') {
+          node = [];
+          nodes.array[tag.attributes.name] = node;
+          state = State.ARRAY;
+        } else if (SimpleTypes.indexOf(tag.name) >= 0) {
           if (nodes[tag.name] === undefined)
             nodes[tag.name] = {};
           node = nodes[tag.name];
@@ -42,12 +48,16 @@ const parseFile = (nodes, path) => {
           state = State.SIMPLE;
         }
         break;
+      case State.ARRAY:
+        if (tag.name === 'item')
+          state = State.ARRAY_ITEM;
+        break;
       case State.STYLE:
         if (tag.name === 'item') {
           if (node.items === undefined)
             node.items = {};
           name = tag.attributes.name;
-          state = State.ITEM;
+          state = State.STYLE_ITEM;
         }
         break;
     }
@@ -62,9 +72,17 @@ const parseFile = (nodes, path) => {
         if (tag === 'style')
           state = State.RESOURCES;
         break;
-      case State.ITEM:
+      case State.STYLE_ITEM:
         if (tag === 'item')
           state = State.STYLE;
+        break;
+      case State.ARRAY:
+        if (tag === 'array')
+          state = State.RESOURCES;
+        break;
+      case State.ARRAY_ITEM:
+        if (tag === 'item')
+          state = State.ARRAY;
         break;
       case State.SIMPLE:
         state = State.RESOURCES;
@@ -72,10 +90,17 @@ const parseFile = (nodes, path) => {
     }
   };
   parser.ontext = (text) => {
-    if (state === State.ITEM)
-      node.items[name] = text;
-    else if (state === State.SIMPLE)
-      node[name] = text;
+    switch (state) {
+      case State.STYLE_ITEM:
+        node.items[name] = text;
+        break;
+      case State.ARRAY_ITEM:
+        node.push(text);
+        break;
+      case State.SIMPLE:
+        node[name] = text;
+        break;
+    }
   };
 
   const fd = fs.openSync(path, 'r');
@@ -104,6 +129,7 @@ const scanDir = (nodes, dir) => {
 const create = (dirs) => {
   const nodes = {
     style: [],
+    array: {},
   };
   dirs.forEach(dir => {
     scanDir(nodes, dir);
