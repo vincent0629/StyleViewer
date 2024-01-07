@@ -20,20 +20,8 @@ app.get('/get/style/:name', (req, res) => {
   res.json(styleTree.getStyle(nodes, req.params.name));
 });
 
-app.get('/get/color/:name', (req, res) => {
-  res.json(styleTree.getColor(nodes, req.params.name));
-});
-
-app.get('/get/dimen/:name', (req, res) => {
-  res.json(styleTree.getDimen(nodes, req.params.name));
-});
-
-app.get('/get/integer/:name', (req, res) => {
-  res.json(styleTree.getInteger(nodes, req.params.name));
-});
-
-app.get('/get/:other/:name', (req, res) => {
-  res.json(null);
+app.get('/get/:type/:name', (req, res) => {
+  res.json(styleTree.getResource(nodes, req.params.type, req.params.name));
 });
 
 app.listen(3000, () => {

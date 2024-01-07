@@ -12,10 +12,14 @@ const State = {
   SIMPLE: st++,
 };
 
+const Types = [
+  'color', 'dimen', 'integer', 'string',
+];
+
 const parseFile = (nodes, path) => {
   let state = State.INIT;
   let node = null;
-  let attr = null;
+  let name = null;
   const parser = sax.parser(true);
   parser.onopentag = (tag) => {
     switch (state) {
@@ -30,17 +34,11 @@ const parseFile = (nodes, path) => {
           node = tag.attributes;
           nodes.style.push(node);
           state = State.STYLE;
-        } else if (tag.name === 'color') {
-          node = nodes.color;
-          attr = tag.attributes.name;
-          state = State.SIMPLE;
-        } else if (tag.name === 'dimen') {
-          node = nodes.dimen;
-          attr = tag.attributes.name;
-          state = State.SIMPLE;
-        } else if (tag.name === 'integer') {
-          node = nodes.integer;
-          attr = tag.attributes.name;
+        } else if (Types.indexOf(tag.name) >= 0) {
+          if (nodes[tag.name] === undefined)
+            nodes[tag.name] = {};
+          node = nodes[tag.name];
+          name = tag.attributes.name;
           state = State.SIMPLE;
         }
         break;
@@ -48,7 +46,7 @@ const parseFile = (nodes, path) => {
         if (tag.name === 'item') {
           if (node.items === undefined)
             node.items = {};
-          attr = tag.attributes.name;
+          name = tag.attributes.name;
           state = State.ITEM;
         }
         break;
@@ -69,16 +67,15 @@ const parseFile = (nodes, path) => {
           state = State.STYLE;
         break;
       case State.SIMPLE:
-        if (tag === 'color' || tag === 'dimen' || tag === 'integer')
-          state = State.RESOURCES;
+        state = State.RESOURCES;
         break;
     }
   };
   parser.ontext = (text) => {
     if (state === State.ITEM)
-      node.items[attr] = text;
+      node.items[name] = text;
     else if (state === State.SIMPLE)
-      node[attr] = text;
+      node[name] = text;
   };
 
   const fd = fs.openSync(path, 'r');
@@ -107,9 +104,6 @@ const scanDir = (nodes, dir) => {
 const create = (dirs) => {
   const nodes = {
     style: [],
-    color: {},
-    dimen: {},
-    integer: {},
   };
   dirs.forEach(dir => {
     scanDir(nodes, dir);
@@ -126,23 +120,15 @@ const getStyle = (nodes, name) => {
   return array.length > 0 ? array[0] : null;
 };
 
-const getColor = (nodes, name) => {
-  return nodes.color[name] || null;
-};
-
-const getDimen = (nodes, name) => {
-  return nodes.dimen[name] || null;
-};
-
-const getInteger = (nodes, name) => {
-  return nodes.integer[name] || null;
+const getResource = (nodes, type, name) => {
+  if (!nodes[type])
+    return null;
+  return nodes[type][name] || null;
 };
 
 module.exports = {
   create,
   findStyle,
   getStyle,
-  getColor,
-  getDimen,
-  getInteger,
+  getResource,
 };
