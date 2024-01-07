@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './App.css'
 
 const API = 'http://localhost:3000';
@@ -6,6 +6,8 @@ const API = 'http://localhost:3000';
 function App() {
   const [nodeNames, setNodeNames] = useState();
   const [nodes, setNodes] = useState();
+  const inputRef = useRef();
+  const contextRef = useRef({});
 
   const fetchNode = (name) => {
     return fetch(`${API}/get/${name}`)
@@ -44,13 +46,21 @@ function App() {
     });
   }
 
+  const onTimeout = () => {
+    contextRef.current.timer = 0;
+    const input = inputRef.current;
+    fetch(`${API}/find/${input.value}`)
+      .then(nodes => nodes.json())
+      .then(json => {
+        setNodeNames(json);
+      });
+  };
+
   const onInputChange = (e) => {
+    if (contextRef.current.timer)
+      window.clearTimeout(contextRef.current.timer);
     if (e.target.value.length >= 3)
-      fetch(`${API}/find/${e.target.value}`)
-        .then(nodes => nodes.json())
-        .then(json => {
-          setNodeNames(json);
-        });
+      contextRef.current.timer = window.setTimeout(onTimeout, 1000);
   };
 
   const onNodeNameClick = (e) => {
@@ -108,7 +118,7 @@ function App() {
     <div className="flex flex-row h-full">
       <div className="max-w-[30%] flex flex-col">
         <div className="p-2">
-          <input className="w-full border" type="text" placeholder="Type style name" onChange={onInputChange} />
+          <input className="w-full border" type="text" placeholder="Type style name" onChange={onInputChange} ref={inputRef} />
         </div>
         <div className="grow p-2 overflow-x-hidden overflow-y-auto">
           {nodeNames && nodeNames.map(name => renderNodeName(name))}
