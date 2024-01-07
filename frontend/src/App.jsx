@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import classNames from 'classnames';
 import './App.css'
 
@@ -16,7 +16,7 @@ function App() {
   }
 
   const fetchStyle = (name) => {
-    request(`/getall/style/${name}`)
+    return request(`/getall/style/${name}`)
       .then(styles => {
         const keys = {};
         styles.forEach(style => {
@@ -57,7 +57,11 @@ function App() {
   };
 
   const onStyleNameClick = (e) => {
-    fetchStyle(e.target.getAttribute('data-tag'));
+    const name = e.target.getAttribute('data-tag');
+    fetchStyle(name)
+      .then(() => {
+        history.pushState({style: name}, null, `/${name}`);
+      });
   };
 
   const onStyleItemClick = (item) => {
@@ -72,7 +76,11 @@ function App() {
       return;
     name = name.substring(1);
     if (name.startsWith('style/')) {
-      fetchStyle(name.substring(6));
+      name = name.substring(6);
+      fetchStyle(name)
+        .then(() => {
+          history.pushState({style: name}, null, `/${name}`);
+        });
       return;
     }
 
@@ -128,6 +136,21 @@ function App() {
       </div>
     );
   };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const name = history.state?.style;
+      if (name)
+        fetchStyle(name);
+      else
+        setStyles([]);
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, []);
 
   return (
     <div className="flex flex-row h-full">
