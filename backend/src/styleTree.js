@@ -36,7 +36,7 @@ const parseFile = (nodes, path) => {
           node = tag.attributes;
           nodes.style.push(node);
           state = State.STYLE;
-        } else if (tag.name === 'array') {
+        } else if (tag.name.endsWith('array')) {
           node = [];
           nodes.array[tag.attributes.name] = node;
           state = State.ARRAY;
@@ -85,7 +85,7 @@ const parseFile = (nodes, path) => {
           state = State.STYLE;
         break;
       case State.ARRAY:
-        if (tag === 'array')
+        if (tag.endsWith('array'))
           state = State.RESOURCES;
         break;
       case State.ARRAY_ITEM:
