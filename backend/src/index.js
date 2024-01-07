@@ -32,6 +32,10 @@ app.get('/get/integer/:name', (req, res) => {
   res.json(styleTree.getInteger(nodes, req.params.name));
 });
 
+app.get('/get/:other/:name', (req, res) => {
+  res.json(null);
+});
+
 app.listen(3000, () => {
   console.log('Listening on port 3000.');
 });

@@ -127,15 +127,15 @@ const getStyle = (nodes, name) => {
 };
 
 const getColor = (nodes, name) => {
-  return nodes.color[name];
+  return nodes.color[name] || null;
 };
 
 const getDimen = (nodes, name) => {
-  return nodes.dimen[name];
+  return nodes.dimen[name] || null;
 };
 
 const getInteger = (nodes, name) => {
-  return nodes.integer[name];
+  return nodes.integer[name] || null;
 };
 
 module.exports = {
