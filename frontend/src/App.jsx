@@ -10,9 +10,9 @@ function App() {
   const inputRef = useRef();
   const contextRef = useRef({});
 
-  const fetchStyle = (name) => {
-    return fetch(`${API}/get/style/${name}`)
-      .then(style => style.json());
+  const fetchNode = (name) => {
+    return fetch(`${API}/get/${name}`)
+      .then(node => node.json());
   };
 
   const styleParentName = (style) => {
@@ -30,7 +30,7 @@ function App() {
     if (!name)
       return Promise.resolve(null);
     return new Promise((resolve) => {
-      fetchStyle(name)
+      fetchNode(`style/${name}`)
         .then(style => {
           if (!style)
             resolve(null);
@@ -45,7 +45,32 @@ function App() {
           }
         })
     });
-  }
+  };
+
+  const fetchStyle = (name) => {
+    fetchStyleFamily(name)
+      .then(styles => {
+        const keys = {};
+        styles.forEach(style => {
+          if (style.items) {
+            const items = [];
+            Object.keys(style.items).forEach(key => {
+              const item = {
+                name: key,
+                value: style.items[key],
+              };
+              if (key in keys)
+                item.overwrite = true;
+              else
+                keys[key] = 1;
+              items.push(item);
+            });
+            style.items = items;
+          }
+        });
+        setStyles(styles);
+      });
+  };
 
   const onTimeout = () => {
     contextRef.current.timer = 0;
@@ -65,19 +90,31 @@ function App() {
   };
 
   const onStyleNameClick = (e) => {
-    fetchStyleFamily(e.target.getAttribute('data-tag'))
-      .then(styles => {
-        const keys = {};
-        styles.forEach(style => {
-          if (style.items)
-            Object.keys(style.items).forEach(key => {
-              if (key in keys)
-                style.items[key] = '--' + style.items[key];
-              else
-                keys[key] = 1;
-            });
-        });
-        setStyles(styles);
+    fetchStyle(e.target.getAttribute('data-tag'));
+  };
+
+  const onStyleItemClick = (item) => {
+    if (item.data !== undefined) {
+      delete item.data;
+      setStyles([...styles]);
+      return;
+    }
+
+    let name = item.value;
+    if (!name.startsWith('@') || name.indexOf('/') < 0)
+      return;
+    name = name.substring(1);
+    if (name.startsWith('style/')) {
+      fetchStyle(name.substring(6));
+      return;
+    }
+
+    fetchNode(name)
+      .then(value => {
+        if (value != null) {
+          item.data = value;
+          setStyles([...styles]);
+        }
       });
   };
 
@@ -89,17 +126,25 @@ function App() {
     );
   };
 
+  const renderStyleItemData = (data) => {
+    const item = {
+      name: null,
+      value: data,
+    };
+    return renderStyleItem(item);
+  };
+
   const renderStyleItem = (item) => {
-    let value = item[1];
-    let overwrite = undefined;
-    if (value.startsWith('--')) {
-      overwrite = 'line-through';
-      value = value.substring(2);
-    }
+    const onClick = () => {
+      onStyleItemClick(item);
+    };
     return (
-      <div key={item[0]} className="flex px-2">
-        <div className="grow-0 shrink-0 w-80 overflow-x-hidden">{item[0]}</div>
-        <div className={classNames('grow shrink ml-2', overwrite)}>{value}</div>
+      <div key={item.name}>
+        <div className="flex px-2">
+          <div className="grow-0 shrink-0 w-80 overflow-x-hidden">{item.name}</div>
+          <div className={classNames('grow shrink ml-2', {'line-through': item.overwrite})} onClick={onClick}>{item.value}</div>
+        </div>
+        {item.data && renderStyleItemData(item.data)}
       </div>
     );
   };
@@ -109,7 +154,7 @@ function App() {
       <div key={`style-${style.name}`}>
         <div className="p-2 text-gray-200 bg-gray-800">{style.name}</div>
         <div>
-          {style.items && Object.entries(style.items).map(item => renderStyleItem(item))}
+          {style.items && style.items.map(item => renderStyleItem(item))}
         </div>
       </div>
     );
