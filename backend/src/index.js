@@ -20,8 +20,44 @@ app.get('/get/style/:name', (req, res) => {
   res.json(styleTree.getStyle(nodes, req.params.name));
 });
 
+app.get('/getall/style/:name', (req, res) => {
+  const result = [];
+  let name = req.params.name;
+  while (name) {
+    const style = styleTree.getStyle(nodes, name);
+    if (style !== null) {
+      result.push(style);
+      name = null;
+      if (style.parent)
+        name = style.parent;
+      else {
+        const index = style.name.lastIndexOf('.');
+        if (index > 0)
+          name = style.name.substring(0, index);
+      }
+    }
+  }
+  res.json(result);
+});
+
 app.get('/get/:type/:name', (req, res) => {
   res.json(styleTree.getResource(nodes, req.params.type, req.params.name));
+});
+
+app.get('/getall/:type/:name', (req, res) => {
+  const result = [];
+  let type = req.params.type;
+  let name = req.params.name;
+  while (name) {
+    const res = styleTree.getResource(nodes, type, name);
+    if (res !== null) {
+      result.push(res);
+      name = null;
+      if (res.startsWith('@'))
+        [type, name] = res.substring(1).split('/');
+    }
+  }
+  res.json(result);
 });
 
 app.listen(3000, () => {
