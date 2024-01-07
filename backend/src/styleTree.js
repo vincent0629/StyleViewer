@@ -40,10 +40,18 @@ const parseFile = (nodes, path) => {
           node = [];
           nodes.array[tag.attributes.name] = node;
           state = State.ARRAY;
+        } else if (tag.name === 'item') {
+          const type = tag.attributes.type;
+          if (nodes[type] === undefined)
+            nodes[type] = {};
+          node = nodes[type];
+          name = tag.attributes.name;
+          state = State.SIMPLE;
         } else if (SimpleTypes.indexOf(tag.name) >= 0) {
-          if (nodes[tag.name] === undefined)
-            nodes[tag.name] = {};
-          node = nodes[tag.name];
+          const type = tag.name;
+          if (nodes[type] === undefined)
+            nodes[type] = {};
+          node = nodes[type];
           name = tag.attributes.name;
           state = State.SIMPLE;
         }
