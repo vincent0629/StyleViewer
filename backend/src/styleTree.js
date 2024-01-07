@@ -101,7 +101,7 @@ const get = (nodes, name) => {
 };
 
 const find = (nodes, name) => {
-  return nodes.filter(node => node.name.indexOf(name) >= 0).map(node => node.name);
+  return nodes.filter(node => node.name.indexOf(name) >= 0).map(node => node.name).sort();
 };
 
 module.exports = {
