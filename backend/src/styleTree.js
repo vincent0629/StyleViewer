@@ -146,7 +146,8 @@ const create = (dirs) => {
 };
 
 const findStyle = (nodes, name) => {
-  return nodes.style.filter(style => style.name.indexOf(name) >= 0).map(style => style.name).sort();
+  name = name.toLowerCase();
+  return nodes.style.filter(style => style.name.toLowerCase().indexOf(name) >= 0).map(style => style.name).sort();
 };
 
 const getStyle = (nodes, name) => {
