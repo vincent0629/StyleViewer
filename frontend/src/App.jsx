@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import classNames from 'classnames';
+import DelayedInput from './DelayedInput.jsx';
 import './App.css'
 
 const API = 'http://localhost:3000';
@@ -7,7 +8,7 @@ const API = 'http://localhost:3000';
 function App() {
   const [styleNames, setStyleNames] = useState();
   const [styles, setStyles] = useState();
-  const inputRef = useRef();
+  const [filter, setFilter] = useState('');
   const styleRef = useRef();
   const contextRef = useRef({});
 
@@ -42,20 +43,15 @@ function App() {
       });
   };
 
-  const onTimeout = () => {
-    contextRef.current.timer = 0;
-    const input = inputRef.current;
-    request(`/find/style/${input.value}`)
-      .then(names => {
-        setStyleNames(names);
-      });
-  };
-
-  const onInputChange = (e) => {
-    if (contextRef.current.timer)
-      window.clearTimeout(contextRef.current.timer);
-    if (e.target.value.length >= 3)
-      contextRef.current.timer = window.setTimeout(onTimeout, 1000);
+  const onStyleInputChange = (e) => {
+    const value = e.target.value;
+    if (value.length >= 3)
+      request(`/find/style/${value}`)
+        .then(names => {
+          setStyleNames(names);
+        });
+    else
+      setStyleNames([]);
   };
 
   const onStyleNameClick = (e) => {
@@ -64,6 +60,10 @@ function App() {
       .then(() => {
         history.pushState({style: name}, null, `/${name}`);
       });
+  };
+
+  const onFilterInputChange = (e) => {
+    setFilter(e.target.value.toLowerCase());
   };
 
   const onStyleItemClick = (item) => {
@@ -133,7 +133,7 @@ function App() {
       <div key={`style-${style.name}`}>
         <div className="p-2 text-gray-200 bg-gray-800">{style.name}</div>
         <div>
-          {style.items && style.items.map((item, index) => renderStyleItem(item, index))}
+          {style.items && style.items.filter(item => item.name.toLowerCase().indexOf(filter) >= 0).map((item, index) => renderStyleItem(item, index))}
         </div>
       </div>
     );
@@ -158,17 +158,20 @@ function App() {
     <div className="flex flex-row h-full">
       <div className="max-w-[30%] flex flex-col">
         <div className="p-2">
-          <input className="w-full border" type="text" placeholder="Type style name" onChange={onInputChange} ref={inputRef} />
+          <DelayedInput className="w-full border p-1" type="text" placeholder="Type style name" onChange={onStyleInputChange} />
         </div>
         <div className="grow pl-2 pr-2 pb-2 overflow-x-hidden overflow-y-auto">
           {styleNames && styleNames.map(name => renderStyleName(name))}
         </div>
       </div>
       <div className="grow overflow-auto" ref={styleRef}>
+        <div className="p-2">
+          <DelayedInput className="w-full border p-1" type="text" placeholder="Filter" onChange={onFilterInputChange} />
+        </div>
         {styles && styles.map(style => renderStyle(style))}
       </div>
     </div>
   );
 }
 
-export default App
+export default App;
