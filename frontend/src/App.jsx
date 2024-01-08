@@ -8,6 +8,7 @@ function App() {
   const [styleNames, setStyleNames] = useState();
   const [styles, setStyles] = useState();
   const inputRef = useRef();
+  const styleRef = useRef();
   const contextRef = useRef({});
 
   const request = (path) => {
@@ -37,6 +38,7 @@ function App() {
           }
         });
         setStyles(styles);
+        styleRef.current.scrollTo(0, 0);
       });
   };
 
@@ -162,7 +164,7 @@ function App() {
           {styleNames && styleNames.map(name => renderStyleName(name))}
         </div>
       </div>
-      <div className="grow overflow-auto">
+      <div className="grow overflow-auto" ref={styleRef}>
         {styles && styles.map(style => renderStyle(style))}
       </div>
     </div>
