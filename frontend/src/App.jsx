@@ -42,6 +42,12 @@ function App() {
       });
   };
 
+  const rememberScrollOffset = () => {
+    history.replaceState(Object.assign({}, history.state, {
+      offset: [styleRef.current.scrollLeft, styleRef.current.scrollTop],
+    }), null);
+  };
+
   const onStyleInputChange = (e) => {
     const value = e.target.value;
     if (value.length >= 3)
@@ -57,12 +63,9 @@ function App() {
     const name = e.target.getAttribute('data-tag');
     fetchStyle(name)
       .then((styles) => {
-        history.replaceState(Object.assign({}, history.state, {
-          offset: [styleRef.current.scrollLeft, styleRef.current.scrollTop],
-        }), null);
+        rememberScrollOffset();
         history.pushState({style: name}, null, `/${name}`);
-        setStyles(styles)
-        styleRef.current.scrollTo(0, 0);
+        setStyles(styles);
       });
   };
 
@@ -73,6 +76,7 @@ function App() {
   const onStyleItemClick = (item) => {
     if (item.data !== undefined) {
       delete item.data;
+      rememberScrollOffset();
       setStyles([...styles]);
       return;
     }
@@ -85,12 +89,9 @@ function App() {
       name = name.substring(6);
       fetchStyle(name)
         .then((styles) => {
-          history.replaceState(Object.assign({}, history.state, {
-            offset: [styleRef.current.scrollLeft, styleRef.current.scrollTop],
-          }), null);
+          rememberScrollOffset();
           history.pushState({style: name}, null, `/${name}`);
-          setStyles(styles)
-          styleRef.current.scrollTo(0, 0);
+          setStyles(styles);
         });
       return;
     }
@@ -99,6 +100,7 @@ function App() {
       .then(values => {
         if (values.length > 0) {
           item.data = values;
+          rememberScrollOffset();
           setStyles([...styles]);
         }
       });
@@ -106,7 +108,7 @@ function App() {
 
   const renderStyleName = (name) => {
     return (
-      <div key={`name-${name}`} data-tag={name} onClick={onStyleNameClick}>
+      <div key={`name-${name}`} className="px-2" data-tag={name} onClick={onStyleNameClick}>
         {name}
       </div>
     );
@@ -123,30 +125,36 @@ function App() {
   };
 
   const renderStyleItem = (item, index) => {
-    const onClick = () => {
-      onStyleItemClick(item);
-    };
+    let onClick;
+    if (item.name)
+      onClick = () => {
+        onStyleItemClick(item);
+      };
     return (
-      <div key={index}>
-        <div className="flex px-2">
-          <div className="grow-0 shrink-0 w-80 overflow-x-hidden">{item.name}</div>
-          <div className={classNames('grow shrink ml-2', {'line-through': item.overwrite})} onClick={onClick}>{item.value}</div>
+      <>
+        <div key={index} className="relative px-2" onClick={onClick}>
+          <div className="w-80 truncate h-6">{item.name}</div>
+          <div className={classNames('absolute left-[328px] top-0', {'line-through': item.overwrite})}>{item.value}</div>
         </div>
         {item.data && renderStyleItemData(item.data)}
-      </div>
+      </>
     );
   };
 
   const renderStyle = (style) => {
     return (
-      <div key={`style-${style.name}`}>
-        <div className="p-2 text-gray-200 bg-gray-800">{style.name}</div>
-        <div>
-          {style.items && style.items.filter(item => item.name.toLowerCase().indexOf(filter) >= 0).map((item, index) => renderStyleItem(item, index))}
-        </div>
-      </div>
+      <>
+        <div key={style.name} className="p-2 text-gray-200 bg-gray-800">{style.name}</div>
+        {style.items && style.items.filter(item => item.name.toLowerCase().indexOf(filter) >= 0).map((item, index) => renderStyleItem(item, index))}
+      </>
     );
   };
+
+  useEffect(() => {
+    const offset = history.state?.offset || [0, 0];
+    if (styleRef.current)
+      styleRef.current.scrollTo(offset[0], offset[1]);
+  }, [styles]);
 
   useEffect(() => {
     const onPopState = () => {
@@ -155,10 +163,6 @@ function App() {
         fetchStyle(name)
           .then((styles) => {
             setStyles(styles);
-            if (history.state.offset)
-              window.setTimeout(() => {
-                styleRef.current.scrollTo(history.state.offset[0], history.state.offset[1]);
-              }, 100);
           });
       else
         setStyles([]);
@@ -176,7 +180,7 @@ function App() {
         <div className="p-2">
           <DelayedInput className="w-full border p-1" type="text" placeholder="Type style name" onChange={onStyleInputChange} />
         </div>
-        <div className="grow pl-2 pr-2 pb-2 overflow-x-hidden overflow-y-auto">
+        <div className="grow pb-2 overflow-x-hidden overflow-y-auto">
           {styleNames && styleNames.map(name => renderStyleName(name))}
         </div>
       </div>
