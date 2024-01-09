@@ -38,8 +38,7 @@ function App() {
             style.items = items;
           }
         });
-        setStyles(styles);
-        styleRef.current.scrollTo(0, 0);
+        return styles;
       });
   };
 
@@ -57,8 +56,13 @@ function App() {
   const onStyleNameClick = (e) => {
     const name = e.target.getAttribute('data-tag');
     fetchStyle(name)
-      .then(() => {
+      .then((styles) => {
+        history.replaceState(Object.assign({}, history.state, {
+          offset: [styleRef.current.scrollLeft, styleRef.current.scrollTop],
+        }), null);
         history.pushState({style: name}, null, `/${name}`);
+        setStyles(styles)
+        styleRef.current.scrollTo(0, 0);
       });
   };
 
@@ -80,8 +84,13 @@ function App() {
     if (name.startsWith('style/')) {
       name = name.substring(6);
       fetchStyle(name)
-        .then(() => {
+        .then((styles) => {
+          history.replaceState(Object.assign({}, history.state, {
+            offset: [styleRef.current.scrollLeft, styleRef.current.scrollTop],
+          }), null);
           history.pushState({style: name}, null, `/${name}`);
+          setStyles(styles)
+          styleRef.current.scrollTo(0, 0);
         });
       return;
     }
@@ -143,7 +152,14 @@ function App() {
     const onPopState = () => {
       const name = history.state?.style;
       if (name)
-        fetchStyle(name);
+        fetchStyle(name)
+          .then((styles) => {
+            setStyles(styles);
+            if (history.state.offset)
+              window.setTimeout(() => {
+                styleRef.current.scrollTo(history.state.offset[0], history.state.offset[1]);
+              }, 100);
+          });
       else
         setStyles([]);
     };
@@ -164,11 +180,13 @@ function App() {
           {styleNames && styleNames.map(name => renderStyleName(name))}
         </div>
       </div>
-      <div className="grow overflow-auto" ref={styleRef}>
+      <div className="grow flex flex-col">
         <div className="p-2">
           <DelayedInput className="w-full border p-1" type="text" placeholder="Filter" onChange={onFilterInputChange} />
         </div>
-        {styles && styles.map(style => renderStyle(style))}
+        <div className="grow pb-2 overflow-x-hidden overflow-y-auto" ref={styleRef}>
+          {styles && styles.map(style => renderStyle(style))}
+        </div>
       </div>
     </div>
   );
