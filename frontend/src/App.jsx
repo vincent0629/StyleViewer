@@ -117,7 +117,7 @@ function App() {
   const renderStyleItemData = (data) => {
     return data.map((d, index) => {
       const item = {
-        name: null,
+        name: '-',
         value: d,
       };
       return renderStyleItem(item, index);
@@ -126,15 +126,15 @@ function App() {
 
   const renderStyleItem = (item, index) => {
     let onClick;
-    if (item.name)
+    if (item.name !== '-')
       onClick = () => {
         onStyleItemClick(item);
       };
     return (
       <>
         <div key={index} className="relative px-2" onClick={onClick}>
-          <div className="w-80 truncate h-6">{item.name}</div>
-          <div className={classNames('absolute left-[328px] top-0', {'line-through': item.overwrite})}>{item.value}</div>
+          <div className="w-80 truncate">{item.name}</div>
+          <div className={classNames('absolute left-[336px] top-0 truncate', {'line-through': item.overwrite})}>{item.value}</div>
         </div>
         {item.data && renderStyleItemData(item.data)}
       </>
