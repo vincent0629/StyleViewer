@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import DelayedInput from './DelayedInput.jsx';
 import './App.css'
 
-const API = 'http://localhost:3000';
+const API = '/api';
 
 function App() {
   const [styleNames, setStyleNames] = useState();

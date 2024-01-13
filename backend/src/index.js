@@ -2,12 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const styleTree = require('./styleTree');
 
-if (process.argv.length < 3) {
-  console.log('Usage: node index.js <res directory>');
-  return;
-}
+let res = ['../res'];
+if (process.argv.length > 2)
+  res = process.argv.slice(2);
 
-const nodes = styleTree.create(process.argv.slice(2))
+const nodes = styleTree.create(res)
 
 const app = express();
 app.use(cors());
@@ -26,15 +25,15 @@ const getFinalValue = (value) => {
   return value;
 };
 
-app.get('/find/style/:name', (req, res) => {
+app.get('/api/find/style/:name', (req, res) => {
   res.json(styleTree.findStyle(nodes, req.params.name));
 });
 
-app.get('/get/style/:name', (req, res) => {
+app.get('/api/get/style/:name', (req, res) => {
   res.json(styleTree.getStyle(nodes, req.params.name));
 });
 
-app.get('/getall/style/:name', (req, res) => {
+app.get('/api/getall/style/:name', (req, res) => {
   const result = [];
   let name = req.params.name;
   while (name) {
@@ -54,11 +53,11 @@ app.get('/getall/style/:name', (req, res) => {
   res.json(result);
 });
 
-app.get('/get/:type/:name', (req, res) => {
+app.get('/api/get/:type/:name', (req, res) => {
   res.json(styleTree.getResource(nodes, req.params.type, req.params.name));
 });
 
-app.get('/getall/:type/:name', (req, res) => {
+app.get('/api/getall/:type/:name', (req, res) => {
   const result = [];
   let type = req.params.type;
   let name = req.params.name;
@@ -77,6 +76,13 @@ app.get('/getall/:type/:name', (req, res) => {
     }
   }
   res.json(result);
+});
+
+app.get('/*', (req, res) => {
+  const options = {
+    root: '../frontend/dist',
+  };
+  res.sendFile(req.path, options);
 });
 
 app.listen(3000, () => {

@@ -1,0 +1,11 @@
+FROM node:latest
+
+RUN mkdir -p /StyleViewer/res
+COPY backend /StyleViewer/backend
+COPY frontend /StyleViewer/frontend
+RUN wget -qO- https://android.googlesource.com/platform/frameworks/base/+archive/HEAD/core/res/res.tar.gz | tar -C /StyleViewer/res -xz \
+  && npm --prefix /StyleViewer/backend install \
+  && npm --prefix /StyleViewer/frontend install \
+  && npm --prefix /StyleViewer/frontend run build
+WORKDIR /StyleViewer/backend
+CMD ["npm", "run", "start"]
