@@ -3,14 +3,13 @@ import classNames from 'classnames';
 import DelayedInput from './DelayedInput.jsx';
 import './App.css'
 
-const API = '/api';
+const API = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3000/api';
 
 function App() {
   const [styleNames, setStyleNames] = useState();
   const [styles, setStyles] = useState();
   const [filter, setFilter] = useState('');
   const styleRef = useRef();
-  const contextRef = useRef({});
 
   const request = (path) => {
     return fetch(`${API}${path}`)
@@ -64,7 +63,7 @@ function App() {
     fetchStyle(name)
       .then((styles) => {
         rememberScrollOffset();
-        history.pushState({style: name}, null, `/${name}`);
+        history.pushState({style: name}, null, `/style/${name}`);
         setStyles(styles);
       });
   };
@@ -90,7 +89,7 @@ function App() {
       fetchStyle(name)
         .then((styles) => {
           rememberScrollOffset();
-          history.pushState({style: name}, null, `/${name}`);
+          history.pushState({style: name}, null, `/style/${name}`);
           setStyles(styles);
         });
       return;

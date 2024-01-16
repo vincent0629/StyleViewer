@@ -78,6 +78,10 @@ app.get('/api/getall/:type/:name', (req, res) => {
   res.json(result);
 });
 
+app.get('/style/*', (req, res) => {
+  res.redirect('/');
+});
+
 app.get('/*', (req, res) => {
   const options = {
     root: '../frontend/dist',
